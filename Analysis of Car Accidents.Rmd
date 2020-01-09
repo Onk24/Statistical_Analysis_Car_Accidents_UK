@@ -1,0 +1,110 @@
+Importing data
+```{r}
+library(MASS)
+drivers_df <- drivers
+hist(drivers_df)
+```
+Plotting Emperical Distribution
+```{r}
+library(MASS)
+drivers_df <- drivers
+drivers_df.ecdf <- ecdf(drivers_df)
+plot.ecdf(drivers_df,xlab = "Deaths")
+```
+Point estimation of Median
+
+```{r}
+th.hat <- median(drivers_df)
+print(th.hat)
+```
+
+Non parametric bootstrap to find Confidence Interval of the Median 
+
+```{r}
+library(bootstrap)
+
+theta <- function(x, xdata)
+{
+  median(xdata[x])
+}
+n = length(drivers_df)
+
+drivers_df.boot <- bootstrap(1:n,3200,theta, drivers_df)
+
+Dboot<-drivers_df.boot$thetastar #vector of bootstrap results
+se.boot <- sqrt(var(Dboot))
+
+Normal_CI <- c(th.hat - 2*se.boot, th.hat + 2*se.boot)
+print("Normal CI = ")
+print(Normal_CI)
+
+Pivotal_CI <- c(2*th.hat-quantile(Dboot,.975),2*th.hat-quantile(Dboot, .025))
+print("Pivotal CI = ")
+print(Pivotal_CI)
+
+Quantile_CI <- c(quantile(Dboot,.025), quantile(Dboot,.975))
+print("Quantile CI = ")
+print(Quantile_CI)
+```
+Parametric Estimation
+```{r}
+
+mu_hat <- mean(drivers_df)
+sigma_hat = sd(drivers_df)*sqrt(n/(n-1))
+tau_hat <- mu_hat + qnorm(0.5) * sigma_hat
+print(tau_hat)
+```
+CI using  parametric bootstrap
+```{r}
+##parametric bootstrap
+tau_bootstrap <- vector()
+
+for(i in 1:1000)
+  {
+  X = rnorm(n,mu_hat,sigma_hat)
+  X_mu = mean(X)
+  X_sigma = sd(X)*(sqrt(n/(n-1)))
+  tau_bootstrap[i] = X_mu + qnorm(0.5)*X_sigma
+  }
+tau_bootstrap_se <- sd(tau_bootstrap)
+tau_bootstrap_se
+```
+
+
+```{r}
+#CI
+normal_ci <- c(mu_hat - 2 * tau_bootstrap_se, mu_hat + 2 * tau_bootstrap_se)
+print(normal_ci)
+```
+#We will test for hypothesis that the proportion of deaths over the years are the same 
+```{r}
+deaths_yearly <- vector()
+prob = vector()
+#yearly deaths for 16 years
+for(i in 1:16)
+{
+  p = (i-1)*12 + 1
+  q = i*12
+  deaths_yearly[i] = sum(drivers_df[p:q])
+  prob[i] = (1/16)
+}
+chisq.test(x= deaths_yearly,p=prob)
+```
+For alpha = 0.05, we can rejct the null hypothesis that the proportion of deaths are same yearly 
+
+We can also test for an important hypothesis whether the introduction of seatbelts in UK after 31st Jan 1983 (as given in the data description) resulted in less accidents
+```{r}
+drivers_before_sb <- drivers_df[1:169]
+drivers_after_sb <- drivers_df[170:192]
+par(mfrow=c(1,2))
+hist(drivers_before_sb)
+hist(drivers_after_sb)
+X = mean(drivers_before_sb)
+Y = mean(drivers_after_sb)
+Sx = sd(drivers_before_sb)*168/169
+Sy = sd(drivers_after_sb)*22/23
+Z = (X - Y)/((Sx^2/169)+(Sy^2/23))
+p_value = 1-pnorm(abs(Z))
+print(p_value)
+```
+Since the p-value is greater than alpha (0.05) we reject the null hypothesis. Therefore, we conclude the mean of normal distribution after the introduction of seatbelt compulsion rule is more.
