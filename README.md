@@ -5,6 +5,6 @@ The work captures:
 1) Parametric and non-parametric estimation of Median of Deaths
 2) Confindence interval for this estimate
 3) Hypothesis testing:
-  a) Proportion of deaths same or different over the years
-  b) Distrubtion of data before and after the introduction of seat belt - whether the introduction of seatbelts in 1983 has been effective in decreasing the number of deaths.
+a) Proportion of deaths same or different over the years
+b) Distrubtion of data before and after the introduction of seat belt - whether the introduction of seatbelts in 1983 has been effective in decreasing the number of deaths.
 We make important conclusion based on these hypothesis
